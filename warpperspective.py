@@ -13,7 +13,7 @@ rows,cols,ch = img.shape
 points = []
 bgimage = img.copy()
 # Inspired by Adrian Rosebrock http://www.pyimagesearch.com/2015/03/09/capturing-mouse-click-events-with-python-and-opencv/
-def click_and_crop(event, x, y, flags, param):
+def click_corners(event, x, y, flags, param):
     global points
     if event == cv2.EVENT_LBUTTONUP:
         points.append((x, y))
@@ -21,7 +21,7 @@ def click_and_crop(event, x, y, flags, param):
         cv2.imshow("image", bgimage)
 
 cv2.namedWindow("image")
-cv2.setMouseCallback("image", click_and_crop)
+cv2.setMouseCallback("image", click_corners)
 cv2.imshow("image",bgimage)
 
 while True:
