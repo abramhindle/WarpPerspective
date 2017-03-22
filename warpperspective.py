@@ -1,8 +1,42 @@
-# OpenCV http://docs.opencv.org/3.1.0/da/d6e/tutorial_py_geometric_transformations.html
+# Copyright (c) 2017 OpenCV, Alexander Mordvintsev, Abid Rahman K., Abram Hindle
+# License Agreement
+# For Open Source Computer Vision Library
+# (3-clause BSD License)
+# 
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+# 
+#     Redistributions of source code must retain the above copyright
+#     notice, this list of conditions and the following disclaimer.
+#     Redistributions in binary form must reproduce the above
+#     copyright notice, this list of conditions and the following
+#     disclaimer in the documentation and/or other materials provided
+#     with the distribution. Neither the names of the copyright
+#     holders nor the names of the contributors may be used to endorse
+#     or promote products derived from this software without specific
+#     prior written permission.
+# 
+# This software is provided by the copyright holders and contributors
+# “as is” and any express or implied warranties, including, but not
+# limited to, the implied warranties of merchantability and fitness
+# for a particular purpose are disclaimed. In no event shall copyright
+# holders or contributors be liable for any direct, indirect,
+# incidental, special, exemplary, or consequential damages (including,
+# but not limited to, procurement of substitute goods or services;
+# loss of use, data, or profits; or business interruption) however
+# caused and on any theory of liability, whether in contract, strict
+# liability, or tort (including negligence or otherwise) arising in
+# any way out of the use of this software, even if advised of the
+# possibility of such damage.
+# 
+# 
+# Taken from OpenCV http://docs.opencv.org/3.1.0/da/d6e/tutorial_py_geometric_transformations.html
 #
 #    Alexander Mordvintsev (GSoC-2013 mentor)
 #    Abid Rahman K. (GSoC-2013 intern)
-#
+# and inspired from Adrian Rosebrock http://www.pyimagesearch.com/2015/03/09/capturing-mouse-click-events-with-python-and-opencv/
+
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
@@ -102,8 +136,11 @@ if __name__ == "__main__":
                         help='height for Warping')
     args = parser.parse_args()
     img = cv2.imread(args.demo[0])
+    # instantiate this, it is a builder for the warper
     wc = WarpCalibrator(width=args.width,height=args.height)
+    # make a blocking GUI that calibrates and produces a warper
     warper = wc.calibrate(img)
+    # warp the image
     warped = warper.warp(img)
     cv2.imshow(wc.window_name, warped)
     cv2.waitKey(0)
