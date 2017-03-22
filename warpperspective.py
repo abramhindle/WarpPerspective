@@ -128,15 +128,7 @@ class WarpCalibrator(object):
         warper = Warper(points=points,width=self.width,height=self.height,supersample=self.supersample)
         return warper
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Demo Calibrate images for perspective correction')
-    parser.add_argument('demo', type=str, nargs=1, default="test2.jpg",
-                    help='Input image to correct perspective on!')
-    parser.add_argument('--width', type=int, nargs=1,default=512,
-                        help='Width for Warping')
-    parser.add_argument('--height', type=int, nargs=1,default=512,
-                        help='height for Warping')
-    args = parser.parse_args()
+def image_main(args):
     img = cv2.imread(args.demo[0])
     # instantiate this, it is a builder for the warper
     wc = WarpCalibrator(width=args.width,height=args.height)
@@ -147,3 +139,41 @@ if __name__ == "__main__":
     cv2.imshow(wc.window_name, warped)
     cv2.waitKey(0)
     warper.warp_demo(img)
+
+def video_main(args):
+    cap = cv2.VideoCapture(args.demo[0])
+    ret, img = cap.read()
+    wc = WarpCalibrator(width=args.width,height=args.height)
+    warper = wc.calibrate(img)
+    done = False
+    warped = None
+    while not done:
+        # look at the attempt reuse allocated memory img[:]
+        ret, img[:] = cap.read()
+        # using out=warped tries to do the same thing, if out is None it
+        # will be initialized for you, so perhaps we save memory.
+        # perhaps
+        warped = warper.warp(img,out=warped)
+        cv2.imshow("Original",img)
+        cv2.imshow("warped",warped)
+        k = cv2.waitKey(1000/60) & 0xff
+        if k == 27:
+            done = True
+    cap.release()
+    cv2.destroyAllWindows()
+    
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Demo Calibrate images for perspective correction')
+    parser.add_argument('demo', type=str, nargs=1, default="test2.jpg",
+                    help='Input image to correct perspective on!')
+    parser.add_argument('--width', type=int, nargs=1,default=512,
+                        help='Width for Warping')
+    parser.add_argument('--height', type=int, nargs=1,default=512,
+                        help='height for Warping')
+    parser.add_argument('--video',action='store_true',
+                        help='Treat as a video')
+    args = parser.parse_args()
+    if args.video:
+        video_main(args)
+    else:
+        image_main(args)
