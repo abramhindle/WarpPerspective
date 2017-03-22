@@ -1,12 +1,14 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 # Copyright (c) 2017 OpenCV, Alexander Mordvintsev, Abid Rahman K., Abram Hindle
 # License Agreement
 # For Open Source Computer Vision Library
 # (3-clause BSD License)
-# 
+#
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
 # are met:
-# 
+#
 #     Redistributions of source code must retain the above copyright
 #     notice, this list of conditions and the following disclaimer.
 #     Redistributions in binary form must reproduce the above
@@ -16,7 +18,7 @@
 #     holders nor the names of the contributors may be used to endorse
 #     or promote products derived from this software without specific
 #     prior written permission.
-# 
+#
 # This software is provided by the copyright holders and contributors
 # “as is” and any express or implied warranties, including, but not
 # limited to, the implied warranties of merchantability and fitness
@@ -29,8 +31,8 @@
 # liability, or tort (including negligence or otherwise) arising in
 # any way out of the use of this software, even if advised of the
 # possibility of such damage.
-# 
-# 
+#
+#
 # Taken from OpenCV http://docs.opencv.org/3.1.0/da/d6e/tutorial_py_geometric_transformations.html
 #
 #    Alexander Mordvintsev (GSoC-2013 mentor)
@@ -92,7 +94,7 @@ class Warper(object):
         plt.show()
 
 
-        
+
 class WarpCalibrator(object):
     def __init__(self,width=229,height=229,supersample=2):
         self.window_name = "image"
