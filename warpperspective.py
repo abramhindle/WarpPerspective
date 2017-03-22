@@ -6,39 +6,105 @@
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
+import argparse
 
-img = cv2.imread("test2.jpg")
-rows,cols,ch = img.shape
- 
-points = []
-bgimage = img.copy()
-# Inspired by Adrian Rosebrock http://www.pyimagesearch.com/2015/03/09/capturing-mouse-click-events-with-python-and-opencv/
-def click_corners(event, x, y, flags, param):
-    global points
-    if event == cv2.EVENT_LBUTTONUP:
-        points.append((x, y))
-        cv2.rectangle(bgimage, (x,y), (x+2,y+2), (0, 255, 0), 2)
-        cv2.imshow("image", bgimage)
 
-cv2.namedWindow("image")
-cv2.setMouseCallback("image", click_corners)
-cv2.imshow("image",bgimage)
 
-while True:
-	cv2.imshow("image", bgimage)
-	key = cv2.waitKey(1) & 0xFF
-	if len(points)==4:
+
+class Warper(object):
+    def __init__(self,points,width=229,height=229,supersample=2,interpolation=None):
+        self.points = points
+        self.width  = width
+        self.height = height
+        self.supersample = supersample
+        self.pts1 = np.float32([points[0],points[1],points[3],points[2]])
+        W = self.width
+        H = self.height
+        self.pts2 = np.float32([[0,0],[W*supersample,0],[0,H*supersample],[W*supersample,H*supersample]])
+        self.M = cv2.getPerspectiveTransform(self.pts1,self.pts2)
+        self.dst = None
+        if (interpolation == None):
+            self.interpolation = cv2.INTER_CUBIC
+        else:
+            self.interpolation = interpolation
+
+    def warp(self,img,out=None):
+        W = self.width
+        H = self.height
+        M = self.M
+        supersample = self.supersample
+        if self.dst is None:
+            self.dst = cv2.warpPerspective(img,M,(W*supersample,H*supersample))
+        else:
+            self.dst[:] = cv2.warpPerspective(img,M,(W*supersample,H*supersample))
+        # unnecessarily complicated
+        if supersample == 1:
+            if out == None:
+                return self.dst
+            else:
+                out[:] = self.dst
+                return out
+        else:
+            if out == None:
+                return cv2.resize(self.dst, (W,H), interpolation=self.interpolation)
+            else:
+                out[:] = cv2.resize(self.dst, (W,H), interpolation=self.interpolation)
+                return out
+
+    def warp_demo(self,img):
+        dst = self.warp(img)
+        plt.subplot(121),plt.imshow(cv2.cvtColor(img, cv2.COLOR_BGR2RGB)),plt.title('Input')
+        plt.subplot(122),plt.imshow(cv2.cvtColor(dst, cv2.COLOR_BGR2RGB)),plt.title('Output')
+        plt.show()
+
+
+        
+class WarpCalibrator(object):
+    def __init__(self,width=229,height=229,supersample=2):
+        self.window_name = "image"
+        self.width = width
+        self.height = height
+        self.supersample = 2
+    def calibrate(self,img):
+        bgimage = img.copy()
+        points = list()
+        window_name = self.window_name
+        # Inspired by Adrian Rosebrock http://www.pyimagesearch.com/2015/03/09/capturing-mouse-click-events-with-python-and-opencv/
+        def click_corners(event, x, y, flags, param):
+            if event == cv2.EVENT_LBUTTONUP:
+                points.append((x, y))
+                cv2.rectangle(bgimage, (x,y), (x+2,y+2), (0, 255, 0), 2)
+                cv2.imshow(window_name, bgimage)
+
+        cv2.namedWindow(window_name)
+        cv2.setMouseCallback(window_name, click_corners)
+        cv2.imshow(window_name,bgimage)
+
+        while True:
+	    cv2.imshow(window_name, bgimage)
+	    key = cv2.waitKey(1) & 0xFF
+	    if len(points)==4:
 		break
+        def nothing(e,x,y,f,p):
+            None
+        cv2.setMouseCallback(window_name, nothing)
 
-W=H=229
-pts1 = np.float32([points[0],points[1],points[3],points[2]])
-pts2 = np.float32([[0,0],[W,0],[0,H],[W,H]])
- 
-M = cv2.getPerspectiveTransform(pts1,pts2)
- 
-dst = cv2.warpPerspective(img,M,(W,H))
- 
-plt.subplot(121),plt.imshow(img),plt.title('Input')
-plt.subplot(122),plt.imshow(dst),plt.title('Output')
-plt.show()
+        warper = Warper(points=points,width=self.width,height=self.height,supersample=self.supersample)
+        return warper
 
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Demo Calibrate images for perspective correction')
+    parser.add_argument('demo', type=str, nargs=1, default="test2.jpg",
+                    help='Input image to correct perspective on!')
+    parser.add_argument('--width', type=int, nargs=1,default=512,
+                        help='Width for Warping')
+    parser.add_argument('--height', type=int, nargs=1,default=512,
+                        help='height for Warping')
+    args = parser.parse_args()
+    img = cv2.imread(args.demo[0])
+    wc = WarpCalibrator(width=args.width,height=args.height)
+    warper = wc.calibrate(img)
+    warped = warper.warp(img)
+    cv2.imshow(wc.window_name, warped)
+    cv2.waitKey(0)
+    warper.warp_demo(img)
